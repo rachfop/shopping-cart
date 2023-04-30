@@ -46,8 +46,8 @@ async def add_to_cart():
 
     item: str = str(request.json["id"])
     await handle.signal(GreetingWorkflow.add_to_cart, item)
-    message = jsonify({"message": f"Adding {item} to cart"})
 
+    message = jsonify({"message": f"Adding {item} to cart"})
     response = make_response(message, 200)
     return response
 
@@ -73,7 +73,16 @@ async def checkout():
     client: Client = get_client()
     handle = client.get_workflow_handle("hello-signal-workflow-id")
     await handle.signal(GreetingWorkflow.exit)
-    total_price = await handle.result()
+    results = await handle.result()
+
+    async def get_total_price():
+        total_price = 0
+        for product in results:
+            total_price += product["price"] * product["quantity"]
+        return total_price
+
+    total_price = await get_total_price()
+
     message = jsonify({"message": f"Checkout successful. Total price: ${total_price}"})
     response = make_response(message, 200)
     return response
@@ -87,7 +96,6 @@ async def cart():
     )
     cart = await handle.query(GreetingWorkflow.cart_details)
     message = jsonify({"message": f"Cart: {cart}"})
-
     response = make_response(message, 200)
     return response
 

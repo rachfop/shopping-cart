@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import List
 
-from temporalio import activity
-
 
 @dataclass
 class Product:
@@ -13,17 +11,8 @@ class Product:
 
 
 products = {
-    123: Product("Product A", "Description A", 10.99, 5),
-    1234: Product("Product A2", "Description A", 10.99, 5),
-    456: Product("Product B", "Description B", 5.99, 10),
-    789: Product("Product C", "Description C", 20.99, 2),
+    0: Product("iPhone 12 Pro", "Test description for ID 0", 999.99, 1),
+    1: Product("iPhone 12", "Test description for ID 1", 699.99, 1),
+    2: Product("iPhone SE", "Test description for ID 2", 399.99, 1),
+    3: Product("iPhone 11", "Test description for ID 3", 599.99, 1),
 }
-
-
-@activity.defn
-async def charge_customer(cart: List[Product]) -> float:
-    total_price = 0.0
-    print("Charging customer...")
-    for product in cart:
-        total_price += product.price * product.quantity
-    return total_price

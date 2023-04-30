@@ -5,7 +5,7 @@ from typing import List
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from activities import Product, charge_customer, products
+    from activities import Product, products
 
 
 @workflow.defn
@@ -30,31 +30,22 @@ class GreetingWorkflow:
                 product_id = int(self._add_to_cart.get_nowait())
                 if product_id in products:
                     product = products[product_id]
-                    if product.quantity > 0:
-                        product.quantity -= 1
-                        self._cart.append(product)
-                        print(f"Added {product.name} to cart, costs {product.price}.")
-                        cart.append(product)
-                    else:
-                        print(f"Product with ID {product.id} is out of stock.")
+
+                    self._cart.append(product)
+                    print(f"Added {product.name} to cart, costs {product.price}.")
+                    cart.append(product)
+
                 else:
                     print(f"Product with ID {product_id} not found.")
+
             while not self._remove_from_cart.empty():
                 item_to_remove = self._remove_from_cart.get_nowait()
                 if item_to_remove in self._cart:
                     self._cart.remove(item_to_remove)
 
-            # Charge customer if exit signal received
+            # Exit if is signal received
             if self._exit:
-                print(cart)
-                print("Checking out...")
-                total_price = await workflow.execute_activity(
-                    charge_customer,
-                    cart,
-                    start_to_close_timeout=timedelta(seconds=3),
-                )
-                print(f"Total price: ${total_price}")
-                return total_price
+                return cart
 
     @workflow.signal
     async def add_to_cart(self, item: str) -> None:
