@@ -1,10 +1,10 @@
 import asyncio
 
 from flask import Flask, current_app, jsonify, make_response, request
+from greeting_workflow import GreetingWorkflow
 from temporalio.client import Client
 
 from activities import products
-from greeting_workflow import GreetingWorkflow
 
 app = Flask(__name__)
 
