@@ -76,13 +76,3 @@ temporal workflow terminate --workflow-id hello-signal-workflow-id
 ```bash
 temporal schedule delete --schedule-id workflow-schedule-id
 ```
-
-## More info:
-
-## Schedule a Workflow when you enter items in cart
-
-## Add to dictionary to data structure
-
-## When working with money use a money library
-
-How do people handle money in python (What is round rule be when you multiply things)
