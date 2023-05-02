@@ -1,8 +1,10 @@
 import asyncio
 
-from greeting_workflow import ShoppingCartWorkflow
 from temporalio.client import Client
 from temporalio.worker import Worker
+
+from activities import send_email
+from shopping_cart import ScheduleWorkflow, ShoppingCartWorkflow
 
 
 async def main():
@@ -13,7 +15,8 @@ async def main():
     worker = Worker(
         client,
         task_queue="hello-signal-task-queue",
-        workflows=[ShoppingCartWorkflow],
+        workflows=[ShoppingCartWorkflow, ScheduleWorkflow],
+        activities=[send_email],
     )
     await worker.run()
 
