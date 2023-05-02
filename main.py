@@ -14,7 +14,7 @@ async def main():
     # Run a worker for the workflow
     worker = Worker(
         client,
-        task_queue="hello-signal-task-queue",
+        task_queue="shopping-cart-task-queue",
         workflows=[ShoppingCartWorkflow, ScheduleWorkflow],
         activities=[send_email],
     )

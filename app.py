@@ -28,17 +28,19 @@ def get_client() -> Client:
 
 
 # Start Client
-@app.route("/", methods=["POST"])
-async def start():
+@app.route("/<string:email>", methods=["POST"])
+async def start(email):
     client: Client = get_client()
     if request.method == "POST":
         await client.start_workflow(
             ShoppingCartWorkflow.run,
-            id="hello-signal-workflow-id",
-            task_queue="hello-signal-task-queue",
+            id=f"shopping-cart-workflow-{email}",
+            task_queue="shopping-cart-task-queue",
         )
 
-        message = jsonify({"message": "Resource created successfully"})
+        message = jsonify(
+            {"message": f"Resource created successfully for email: {email}"}
+        )
         response = make_response(message, 201)
         return response
 
@@ -46,11 +48,11 @@ async def start():
 
 
 # Add item to cart
-@app.route("/add_to_cart", methods=["POST"])
-async def add_to_cart():
+@app.route("/<string:email>/add_to_cart", methods=["POST"])
+async def add_to_cart(email):
     client: Client = get_client()
     handle = client.get_workflow_handle(
-        "hello-signal-workflow-id",
+        f"shopping-cart-workflow-{email}",
     )
     item: str = str(request.json["id"])
     await handle.signal(ShoppingCartWorkflow.add_to_cart, item)
@@ -59,16 +61,16 @@ async def add_to_cart():
         if item["quantity"] >= 1:
             try:
                 await client.create_schedule(
-                    "workflow-schedule-id",
+                    f"workflow-schedule-id-{email}",
                     Schedule(
                         action=ScheduleActionStartWorkflow(
                             ScheduleWorkflow.run,
                             item,
-                            id="hello-signal-workflow-id",
-                            task_queue="hello-signal-task-queue",
+                            id=f"shopping-cart-workflow-{email}",
+                            task_queue="shopping-cart-task-queue",
                         ),
                         spec=ScheduleSpec(
-                            intervals=[ScheduleIntervalSpec(every=timedelta(seconds=6))]
+                            intervals=[ScheduleIntervalSpec(every=timedelta(seconds=5))]
                         ),
                         state=ScheduleState(
                             limited_actions=True,
@@ -78,33 +80,38 @@ async def add_to_cart():
                 )
             except Exception as e:
                 print(e)
-    message = jsonify({"message": f"Adding {item} to cart"})
+    message = jsonify(
+        {"message": f"Item with ID {item} added to cart for email: {email}"}
+    )
     response = make_response(message, 200)
     return response
 
 
 # Remove item from cart
-@app.route("/remove_from_cart", methods=["DELETE"])
-async def remove_from_cart():
+@app.route("/<string:email>/remove_from_cart", methods=["DELETE"])
+async def remove_from_cart(email):
     client: Client = get_client()
     handle = client.get_workflow_handle(
-        "hello-signal-workflow-id",
+        f"shopping-cart-workflow-{email}",
     )
     item: str = str(request.json["id"])
     await handle.signal(ShoppingCartWorkflow.remove_from_cart, item)
-    message = jsonify({"message": f"Removing {item} from cart"})
-
+    message = jsonify(
+        {"message": f"Item with ID {item} removed from cart for email: {email}"}
+    )
     response = make_response(message, 200)
     return response
 
 
 # Checkout
-@app.route("/checkout", methods=["POST"])
-async def checkout():
+@app.route("/<string:email>/checkout", methods=["POST"])
+async def checkout(email):
     client: Client = get_client()
-    handle = client.get_workflow_handle("hello-signal-workflow-id")
+    handle = client.get_workflow_handle(
+        f"shopping-cart-workflow-{email}",
+    )
     schedule_handle = client.get_schedule_handle(
-        "workflow-schedule-id",
+        f"workflow-schedule-id-{email}",
     )
     await handle.signal(ShoppingCartWorkflow.exit)
     desc = await schedule_handle.describe()
@@ -112,27 +119,31 @@ async def checkout():
         await schedule_handle.delete()
     results = await handle.result()
 
-    async def get_total_price():
+    async def get_total_price() -> decimal.Decimal:
         total_price = decimal.Decimal(0)
         for product in results:
             total_price += decimal.Decimal(str(product["price"])) * product["quantity"]
-        return f"{total_price:.2f}"
+        return total_price
 
     total_price = await get_total_price()
+    message = jsonify(
+        {
+            "message": f"Checkout successful. Total price: ${total_price:.2f} for email: {email}"
+        }
+    )
 
-    message = jsonify({"message": f"Checkout successful. Total price: ${total_price}"})
     response = make_response(message, 200)
     return response
 
 
-@app.route("/cart", methods=["GET"])
-async def cart():
+@app.route("/<string:email>/cart", methods=["GET"])
+async def cart(email):
     client: Client = get_client()
     handle = client.get_workflow_handle(
-        "hello-signal-workflow-id",
+        f"shopping-cart-workflow-{email}",
     )
     cart = await handle.query(ShoppingCartWorkflow.cart_details)
-    message = jsonify({"message": f"Cart: {cart}"})
+    message = jsonify({"message": f"Shopping cart contents for email: {email}: {cart}"})
     response = make_response(message, 200)
     return response
 

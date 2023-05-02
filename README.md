@@ -6,73 +6,60 @@ source venv/bin/activate
 python main.py
 # terminal two
 flask run
-# terminal three
-curl -X POST http://localhost:5000/
+# terminal three: Start client
+curl -X POST http://localhost:5000/user@example.com
 ```
 
-## Start Client
+## Start client
 
 ```bash
-curl -X POST http://localhost:5000/
+curl -X POST http://localhost:5000/user@example.com
 ```
 
 ## Add item to cart
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/add_to_cart
+curl -X POST -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/user@example.com/add_to_cart
 ```
 
 ## Remove item from cart
 
 ```bash
-curl -X DELETE -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/remove_from_cart
+curl -X DELETE -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/user@example.com/remove_from_cart
 ```
 
 ## Get cart details
 
 ```bash
-curl -X GET http://localhost:5000/cart
+curl -X GET http://localhost:5000/user@example.com/cart
 ```
 
 ## Checkout
 
 ```bash
-curl -X POST http://localhost:5000/checkout
+curl -X POST http://localhost:5000/user@example.com/checkout
 ```
 
 ### Run together
 
 ```bash
-curl -X POST http://localhost:5000/
-curl -X POST -H "Content-Type: application/json" -d '{"id": 0}' http://localhost:5000/add_to_cart
-curl -X POST -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/add_to_cart
-curl -X DELETE -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/remove_from_cart
-curl -X POST -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/add_to_cart
-curl -X GET http://localhost:5000/cart
-curl -X POST http://localhost:5000/checkout
+curl -X POST http://localhost:5000/user@example.com
+curl -X POST -H "Content-Type: application/json" -d '{"id": 0}' http://localhost:5000/user@example.com/add_to_cart
+curl -X POST -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/user@example.com/add_to_cart
+curl -X GET http://localhost:5000/user@example.com/cart
+curl -X DELETE -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/user@example.com/remove_from_cart
+curl -X GET http://localhost:5000/user@example.com/cart
+curl -X POST http://localhost:5000/user@example.com/checkout
 ```
 
-## Test deleting
+## Terminate Workflow
 
 ```bash
-curl -X POST http://localhost:5000/
-curl -X POST -H "Content-Type: application/json" -d '{"id": 0}' http://localhost:5000/add_to_cart
-curl -X POST -H "Content-Type: application/json" -d '{"id": 0}' http://localhost:5000/add_to_cart
-curl -X POST -H "Content-Type: application/json" -d '{"id": 1}' http://localhost:5000/add_to_cart
-curl -X GET http://localhost:5000/cart
-curl -X DELETE -H "Content-Type: application/json" -d '{"id": 0}' http://localhost:5000/remove_from_cart
-curl -X GET http://localhost:5000/cart
-curl -X POST http://localhost:5000/checkout
+temporal workflow terminate --workflow-id shopping-cart-workflow-user@example.com
 ```
 
-## Terminate
+## Delete Schedule
 
 ```bash
-temporal workflow terminate --workflow-id hello-signal-workflow-id
-```
-
-## Delete
-
-```bash
-temporal schedule delete --schedule-id workflow-schedule-id
+temporal schedule delete --schedule-id workflow-schedule-id-user@example.com
 ```
